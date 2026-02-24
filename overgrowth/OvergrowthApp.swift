@@ -10,9 +10,9 @@ import SwiftUI
 @main
 struct OvergrowthApp: App {
   var body: some Scene {
-    Window("Overgrowth", id: "mainWindow") {
-      ContentView()
-    }
+//    Window("Overgrowth", id: "mainWindow") {
+//      ContentView()
+//    }
     MenuBarExtra("Overgrowth", systemImage: "tree") {
       MenuView()
     }

@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct MenuView: View {
-  var body: some View {
-    Image(systemName: "tree.fill")
-      .imageScale(.large)
-      .symbolRenderingMode(.multicolor)
-  }
+    var body: some View {
+      VStack {
+        Button("Quit") {
+          NSApplication.shared.terminate(nil)
+        }
+        .keyboardShortcut(KeyEquivalent("q"))
+      }
+    }
 }
 
 #Preview {
