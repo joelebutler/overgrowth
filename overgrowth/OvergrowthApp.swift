@@ -9,12 +9,14 @@ import SwiftUI
 
 @main
 struct OvergrowthApp: App {
+  @State private var gitState = GitState()
   var body: some Scene {
 //    Window("Overgrowth", id: "mainWindow") {
 //      ContentView()
 //    }
     MenuBarExtra("Overgrowth", systemImage: "tree") {
       MenuView()
+        .environment(gitState)
     }
   }
 }
