@@ -17,6 +17,9 @@ struct OvergrowthApp: App {
     MenuBarExtra("Overgrowth", systemImage: "tree") {
       MenuView()
         .environment(gitState)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+          gitState.stopAccess()
+        }
     }
   }
 }

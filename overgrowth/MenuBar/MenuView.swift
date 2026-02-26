@@ -13,13 +13,43 @@ struct MenuView: View {
   @State private var showingImporter: Bool = false
   var body: some View {
     VStack {
-      Text(gitState.repositoryURL?.lastPathComponent ?? "No Active Repository")
-      Divider()
-      Menu ("More...") {
-        Button ("Locate Repository") {
+      Menu(
+        "Repository: \(gitState.activeRepository?.lastPathComponent ?? "No Active Repository")"
+      ) {
+        ForEach(
+          gitState.repositoryURLs.sorted(by: {
+            $0.lastPathComponent < $1.lastPathComponent
+          }),
+          id: \.self
+        ) {
+          repository in
+          Button(
+            action: {
+              gitState.activeRepository = repository
+            },
+            label: {
+              if repository == gitState.activeRepository {
+                Label(repository.lastPathComponent, systemImage: "checkmark")
+              } else {
+                Text(repository.lastPathComponent)
+              }
+            },
+          )
+        }
+        Button("Locate Repository") {
           showingImporter = true
         }.keyboardShortcut("l")
+        if gitState.activeRepository != nil {
+          Button("Unadd Active Repository") {
+            if let active = gitState.activeRepository {
+              gitState.removeRepo(url: active)
+            }
+          }
+        } else {
+          Text("Unadd Active Repository")
+        }
       }
+      Divider()
       Button("Quit") {
         NSApplication.shared.terminate(nil)
       }.keyboardShortcut("q")
@@ -31,17 +61,12 @@ struct MenuView: View {
       handleGitDirectory(result: result)
     }
   }
-  
+
   private func handleGitDirectory(result: Result<[URL], any Error>) {
     switch result {
     case .success(let urls):
       for url in urls {
-        /* TODO: Look into safer later access methods. for now guarantees this is accessible at the time of calling */
-        /* TODO: Ensure folder selected is a git repo*/
-        guard url.startAccessingSecurityScopedResource() else { return }
-        defer { url.stopAccessingSecurityScopedResource() }
-        
-        gitState.repositoryURL = urls.first
+        gitState.addRepo(url: url, setActive: true)
       }
     case .failure(let error):
       print(error.localizedDescription)
