@@ -14,7 +14,7 @@ struct MenuView: View {
   var body: some View {
     VStack {
       Menu(
-        "Repository: \(gitState.activeRepository?.lastPathComponent ?? "No Active Repository")"
+        .repository(gitState.activeRepository?.lastPathComponent ?? "No Active Repository")
       ) {
         ForEach(
           gitState.repositoryURLs.sorted(by: {
@@ -36,21 +36,21 @@ struct MenuView: View {
             },
           )
         }
-        Button("Locate Repository") {
+        Button(.locateNewRepository) {
           showingImporter = true
         }.keyboardShortcut("l")
         if gitState.activeRepository != nil {
-          Button("Unadd Active Repository") {
+          Button(.removeActiveRepository) {
             if let active = gitState.activeRepository {
               gitState.removeRepo(url: active)
             }
           }
         } else {
-          Text("Unadd Active Repository")
+          Text(.removeActiveRepository)
         }
       }
       Divider()
-      Button("Quit") {
+      Button(.quit) {
         NSApplication.shared.terminate(nil)
       }.keyboardShortcut("q")
     }.fileImporter(

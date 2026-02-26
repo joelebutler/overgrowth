@@ -14,7 +14,7 @@ struct OvergrowthApp: App {
 //    Window("Overgrowth", id: "mainWindow") {
 //      ContentView()
 //    }
-    MenuBarExtra("Overgrowth", systemImage: "tree") {
+    MenuBarExtra(.overgrowth, systemImage: "tree") {
       MenuView()
         .environment(gitState)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in

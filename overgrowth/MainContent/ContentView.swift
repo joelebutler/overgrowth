@@ -13,7 +13,7 @@ struct ContentView: View {
     Image(systemName: "tree.fill")
       .imageScale(.large)
       .symbolRenderingMode(.multicolor)
-    Text("This is the future home of overgrowth's contents.")
+    Text(.thisIsTheFutureHomeOfOvergrowthsContents)
     }
     .padding()
   }
