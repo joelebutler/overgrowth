@@ -13,7 +13,6 @@ import SwiftUI
       let repos = repositoryURLs.compactMap { url -> Data? in
         guard url.startAccessingSecurityScopedResource() else {
           /* TODO: Look into safer later access methods. atm this is temp access for bookmark */
-          /* TODO: Ensure folder selected is a git repo*/
           return nil
         }
         defer { url.stopAccessingSecurityScopedResource() }
@@ -23,9 +22,21 @@ import SwiftUI
     }
   }
   func addRepo(url: URL, setActive: Bool) {
-    self.repositoryURLs.insert(url)
+    let _url: URL =
+      url.lastPathComponent == ".git" ? url.deletingLastPathComponent() : url
+
+    if !isGitRepo(repository: _url) {
+      error(
+        message: "Invalid Repository Selected",
+        informativeText:
+          ".git/HEAD subdirectory not found. Operation will be canceled."
+      )
+      return
+    }
+
+    self.repositoryURLs.insert(_url)
     if setActive {
-      activeRepository = url
+      activeRepository = _url
     }
   }
   func stopAccess() {
@@ -42,13 +53,32 @@ import SwiftUI
     didSet {
       oldValue?.stopAccessingSecurityScopedResource()
 
-      if let url = activeRepository {
-        if !url.startAccessingSecurityScopedResource() {
-          // TODO: Error handling here
-        }
+      guard let url = activeRepository else {
+        UserDefaults.standard.removeObject(forKey: "activeRepository")
+        return
       }
+
+      if !url.startAccessingSecurityScopedResource() {
+        error(
+          message: "Access Denied",
+          informativeText:
+            "Unable to access \(url.lastPathComponent). Please ensure you have permission to access the folder and try again."
+        )
+        activeRepository = oldValue
+        return
+      }
+
+      if !isGitRepo(repository: url) {
+        error(
+          message: "Invalid Repository Selected",
+          informativeText: ".git/HEAD subdirectory not found."
+        )
+        activeRepository = oldValue
+        return
+      }
+
       UserDefaults.standard.set(
-        activeRepository?.absoluteString,
+        url.absoluteString,
         forKey: "activeRepository"
       )
     }
@@ -67,8 +97,12 @@ import SwiftUI
           bookmarkDataIsStale: &stale
         )
         if stale {
-          // TODO: Prompt user for re-selection.
-          return nil
+          return reidentificationLoop(
+            url: url,
+            message: "Stale repository",
+            informativeText:
+              "\(url?.lastPathComponent ?? "Repository") was found as a valid git repository. If it has changed locations or been deleted, please reselect it."
+          )
         }
 
         return url
