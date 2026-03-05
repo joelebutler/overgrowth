@@ -49,6 +49,21 @@ struct MenuView: View {
           Text(.removeActiveRepository)
         }
       }
+      Menu("Branches") {
+        if let branch = gitState.currentBranch {
+          Text(branch)
+          Divider()
+        }
+        ForEach(
+          gitState.branches,
+          id: \.self
+        ) {
+          branch in
+          if branch != gitState.currentBranch {
+            Text(branch)
+          }
+        }
+      }
       Divider()
       Button(.quit) {
         NSApplication.shared.terminate(nil)

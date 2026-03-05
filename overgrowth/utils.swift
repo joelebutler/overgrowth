@@ -7,6 +7,43 @@
 
 import SwiftUI
 
+func branchNames(repository: URL) -> (branches: [String], current: String?) {
+  var branches: [String] = []
+  let task = Process()
+  task.executableURL = URL(filePath: "/usr/bin/git") // TODO: Ensure this is proper location.
+  task.currentDirectoryURL = repository
+  task.arguments = ["branch", "-a"]
+  let outputPipe = Pipe()
+  let errorPipe = Pipe()
+
+  task.standardOutput = outputPipe
+  task.standardError = errorPipe
+  do {
+    try task.run()
+    let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(decoding: outputData, as: UTF8.self)
+    
+    var currentBranch: String? = nil
+    for line in output.split(separator: "\n") {
+      let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+      if trimmed.contains("*") {
+        let noAsterisk = trimmed.replacingOccurrences(of: "* ", with: "")
+        currentBranch = noAsterisk
+        branches.append(noAsterisk)
+      } else if trimmed.contains("->") {
+        // skip remote HEAD pointers
+        continue
+      } else {
+        branches.append(trimmed)
+      }
+    }
+    return (branches.sorted(by: <), currentBranch)
+  } catch {
+    // TODO: Log error here.
+    return ([], nil)
+  }
+}
+
 func isGitRepo(repository: URL) -> Bool {
   // Checks for a .git/HEAD within provided folder.
   var isDir: ObjCBool = false

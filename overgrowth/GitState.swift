@@ -81,10 +81,16 @@ import SwiftUI
         url.absoluteString,
         forKey: "activeRepository"
       )
+      (branches, currentBranch) = branchNames(repository: url)
     }
   }
+  
+  var branches: [String];
+  var currentBranch: String?
 
   init() {
+    branches = []
+    currentBranch = nil
     let bookmarks: [Data] =
       UserDefaults.standard.array(forKey: "repositoryURLs") as? [Data] ?? []
     self.repositoryURLs = Set<URL>(
