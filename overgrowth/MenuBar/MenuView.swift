@@ -55,7 +55,17 @@ struct MenuView: View {
           Divider()
         }
         ForEach(
-          gitState.branches,
+          gitState.locals,
+          id: \.self
+        ) {
+          branch in
+          if branch != gitState.currentBranch {
+            Text(branch)
+          }
+        }
+        Divider()
+        ForEach(
+          gitState.remotes,
           id: \.self
         ) {
           branch in

@@ -7,41 +7,63 @@
 
 import SwiftUI
 
-func branchNames(repository: URL) -> (branches: [String], current: String?) {
-  var branches: [String] = []
-  let task = Process()
-  task.executableURL = URL(filePath: "/usr/bin/git") // TODO: Ensure this is proper location.
-  task.currentDirectoryURL = repository
-  task.arguments = ["branch", "-a"]
-  let outputPipe = Pipe()
+func branchNames(repository: URL) -> (local: [String], remotes: [String], current: String?) {
+  var locals: [String] = []
+  var remotes: [String] = []
+  var currentBranch: String? = nil
+  
+  let localTask = Process()
+  localTask.executableURL = URL(filePath: "/usr/bin/git") // TODO: Ensure this is proper location.
+  localTask.currentDirectoryURL = repository
+  localTask.arguments = ["branch"]
+  let remoteTask = Process()
+  remoteTask.executableURL = URL(filePath: "/usr/bin/git")
+  remoteTask.currentDirectoryURL = repository
+  remoteTask.arguments = ["branch", "-r"]
+  
   let errorPipe = Pipe()
-
-  task.standardOutput = outputPipe
-  task.standardError = errorPipe
+  localTask.standardError = errorPipe
   do {
-    try task.run()
-    let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-    let output = String(decoding: outputData, as: UTF8.self)
+    let localPipe = Pipe()
+    localTask.standardOutput = localPipe
+    try localTask.run()
+    let localData = localPipe.fileHandleForReading.readDataToEndOfFile()
+    let local = String(decoding: localData, as: UTF8.self)
     
-    var currentBranch: String? = nil
-    for line in output.split(separator: "\n") {
+    for line in local.split(separator: "\n") {
       let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
       if trimmed.contains("*") {
         let noAsterisk = trimmed.replacingOccurrences(of: "* ", with: "")
         currentBranch = noAsterisk
-        branches.append(noAsterisk)
+        locals.append(noAsterisk)
       } else if trimmed.contains("->") {
         // skip remote HEAD pointers
         continue
       } else {
-        branches.append(trimmed)
+        locals.append(trimmed)
       }
     }
-    return (branches.sorted(by: <), currentBranch)
+    
+    let remotePipe = Pipe()
+    remoteTask.standardOutput = remotePipe
+    try remoteTask.run()
+    let remoteData = remotePipe.fileHandleForReading.readDataToEndOfFile()
+    let remote = String(decoding: remoteData, as: UTF8.self)
+    for line in remote.split(separator: "\n") {
+      let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+      if trimmed.contains("->") {
+        // skip remote HEAD pointers
+        continue
+      } else {
+        remotes.append(trimmed)
+      }
+    }
   } catch {
     // TODO: Log error here.
-    return ([], nil)
+    return ([], [], nil)
   }
+  return (locals, remotes, currentBranch)
+  
 }
 
 func isGitRepo(repository: URL) -> Bool {
