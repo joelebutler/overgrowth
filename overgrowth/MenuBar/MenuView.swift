@@ -72,7 +72,9 @@ struct MenuView: View {
         ) {
           branch in
           if branch != gitState.currentBranch {
-            Text(branch)
+            Button(branch) {
+              gitState.makeBranch(name: branch)
+            }
           }
         }
       }

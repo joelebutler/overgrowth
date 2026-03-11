@@ -122,6 +122,34 @@ import SwiftUI
     }
   }
   
+  func makeBranch(name: String) {
+    // If branch has remote prefix, make track remote
+    // TODO: Otherwise, prompt for new branch name
+    var branchName = name
+    
+    let task = Process()
+    task.executableURL = URL(filePath: "/usr/bin/git")  // TODO: Ensure this is proper location.
+    task.currentDirectoryURL = activeRepository?.absoluteURL
+    
+    let splits : [String] = name.components(separatedBy: "/")
+    if (splits.count > 1) {
+      branchName = splits[1]
+      task.arguments = ["switch", "-c", branchName, name]
+    } else {
+      task.arguments = ["switch", "-c", name]
+    }
+    let pipe = Pipe()
+    task.standardError = pipe
+    do {
+      try task.run()
+      task.waitUntilExit()
+      
+      (locals, remotes, currentBranch) = branchNames(repository: activeRepository!.absoluteURL)
+    } catch {
+      // TODO: Error handling here.
+    }
+  }
+  
   func branchDialog(branch: String)->Bool {
     // returns bool whether to rollback
     let alert = NSAlert()
