@@ -122,21 +122,24 @@ import SwiftUI
     }
   }
   
-  func makeBranch(name: String) {
-    // If branch has remote prefix, make track remote
-    // TODO: Otherwise, prompt for new branch name
-    var branchName = name
+  func makeBranch(name: String? = nil) {
+    // If branch has remote prefix, make track remote.
+    // If empty, prompt for new branch name.
+    // Otherwise, just check out normally.
+    guard let branchName: String = name ?? textPopup(title: "New Branch", message: "Name your new branch.") else {
+      return
+    }
     
     let task = Process()
     task.executableURL = URL(filePath: "/usr/bin/git")  // TODO: Ensure this is proper location.
     task.currentDirectoryURL = activeRepository?.absoluteURL
     
-    let splits : [String] = name.components(separatedBy: "/")
+    let splits : [String] = branchName.components(separatedBy: "/")
     if (splits.count > 1) {
-      branchName = splits[1]
-      task.arguments = ["switch", "-c", branchName, name]
+      let noRemote = splits[1]
+      task.arguments = ["switch", "-c", noRemote, branchName]
     } else {
-      task.arguments = ["switch", "-c", name]
+      task.arguments = ["switch", "-c", branchName]
     }
     let pipe = Pipe()
     task.standardError = pipe

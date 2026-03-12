@@ -84,6 +84,28 @@ func error(message: String, informativeText: String) {
   alert.runModal()
 }
 
+func textPopup(title: String, message: String, w: Int? = nil, h: Int? = nil)->String? {
+  let popup = NSAlert()
+  popup.messageText = title
+  popup.informativeText = message
+  popup.addButton(withTitle: "OK")
+  popup.addButton(withTitle: "Cancel")
+  let buttonFrame = popup.buttons.first!.frame
+
+  
+  let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: w ?? Int(buttonFrame.width), height: h ?? 24))
+  textField.placeholderString = "Type here..."
+  popup.accessoryView = textField
+
+  popup.window.initialFirstResponder = textField
+
+  let response = popup.runModal()
+  if response == .alertFirstButtonReturn {
+      return textField.stringValue
+  }
+  return nil
+}
+
 func reselectionDialog(message: String, informativeText: String) -> URL? {
   let alert = NSAlert()
   alert.messageText = message

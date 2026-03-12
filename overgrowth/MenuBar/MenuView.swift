@@ -52,8 +52,11 @@ struct MenuView: View {
       Menu("Branch: \(gitState.currentBranch ?? "<none>")") {
         if let branch = gitState.currentBranch {
           Text(branch)
-          Divider()
+          Button("New Branch...") {
+            gitState.makeBranch()
+          }
         }
+        Divider()
         ForEach(
           gitState.locals,
           id: \.self
