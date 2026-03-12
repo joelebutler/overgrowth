@@ -14,7 +14,7 @@ struct MenuView: View {
   var body: some View {
     VStack {
       Menu(
-        .repository(gitState.activeRepository?.lastPathComponent ?? "No Active Repository")
+        .repository(gitState.activeRepository?.lastPathComponent ?? "<none>")
       ) {
         ForEach(
           gitState.repositoryURLs.sorted(by: {
@@ -47,6 +47,38 @@ struct MenuView: View {
           }
         } else {
           Text(.removeActiveRepository)
+        }
+      }
+      Menu("Branch: \(gitState.currentBranch ?? "<none>")") {
+        if let branch = gitState.currentBranch {
+          Text(branch)
+          Button("New Branch...") {
+            gitState.makeBranch()
+          }
+        }
+        Divider()
+        ForEach(
+          gitState.locals,
+          id: \.self
+        ) {
+          branch in
+          if branch != gitState.currentBranch {
+            Button(branch) {
+              gitState.currentBranch = branch
+            }
+          }
+        }
+        Divider()
+        ForEach(
+          gitState.remotes,
+          id: \.self
+        ) {
+          branch in
+          if branch != gitState.currentBranch {
+            Button(branch) {
+              gitState.makeBranch(name: branch)
+            }
+          }
         }
       }
       Divider()
